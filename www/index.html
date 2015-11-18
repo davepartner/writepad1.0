@@ -194,10 +194,16 @@
              //check if its edit or new
              var textId = $('#postIdInputEdit').val();
 				  if (textId != "") {
-				      //update database
-               db.transaction(function(transaction) {
+				  	
+				  	
+				  	
                	        var allTitle = $('#txTitle').val();
 					 	var allBody = $('#txBody').val();
+					 	
+					 	
+				      //update database
+               db.transaction(function(transaction) {
+               	
 					   transaction.executeSql('UPDATE Posts SET title = ?, body = ? WHERE id = ?',[allTitle,  allBody, textId]);
 					   });
 					   getPost(textId);
@@ -291,7 +297,7 @@
             	
 				<textarea id="txBody" type="text" placeholder="Write Note" rows="90%" style="height: 50%;"> </textarea>
 				
-				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" /> 
+				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" data-position="fixed" /> 
 				
 				</div>
 				
@@ -306,6 +312,7 @@
 					 <ul>
 					 	<li><a href="#page1" data-icon="home" data-transision="pop">Home</a></li>
 					 	<li><a href="#page1" data-icon="arrow-l" data-rel="back"  data-transision="slide">Back</a></li>
+					 	<li><a href="#" data-icon="recycle"   data-transision="slide" onClick="AddValueToDB()" >Save</a></li>
 					
 					 </ul>
             	  </div>
