@@ -6,7 +6,7 @@
         <meta name="format-detection" content="telephone=no" />
         <meta name="msapplication-tap-highlight" content="no" />
         <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
-        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=medium-dpi" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />
         <link rel="stylesheet" type="text/css" href="css/index.css" />
         
 	
@@ -22,6 +22,13 @@
 	    <script src="js/jquery.mobile-1.4.5.min.js"></script>
 	
          <script type="text/javascript" charset="utf-8">
+ //disable all ajax calls
+  $( document ).on( "mobileinit", function() {
+        $.extend( $.mobile , {
+        ajaxEnabled: false,
+        pushStateEnabled: false
+        });
+    });
 
 			//global variables
 			var db;
@@ -181,7 +188,13 @@
 			   alert('Databases are not supported in this browser.');
 			   return;
 			 }
-
+              var textTitle = $('#txTitle').val();
+              
+              //check for empty submissions
+              if(textTitle == ""){
+              	 alert('Sorry, your post needs to have a title');
+			   return;
+              }
              //check if its edit or new
              var textId = $('#postIdInputEdit').val();
 				  if (textId != "") {
@@ -192,12 +205,12 @@
 					   transaction.executeSql('UPDATE Posts SET title = ?, body = ? WHERE id = ?',[$('#txTitle').val(),  $('#txBody').val(), textId]);
 					   });
 					   getPost(textId);
-					   $.mobile.changePage($("#page3")); //redirect to page one
+					  // $.mobile.changePage($("#page3")); //redirect to page one
 				   }else{
 				   	
 				   	// this is the section that actually inserts the values into the User table
 					 db.transaction(function(transaction) {
-					   transaction.executeSql('INSERT INTO Posts(title, body, created, modified)VALUES (?,?,?,?)',[$('#txTitle').val(), $('#txBody').val(), datetime(), datetime()],nullHandler,errorHandler);
+					   transaction.executeSql('INSERT INTO Posts(title, body)VALUES (?,?)',[$('#txTitle').val(), $('#txBody').val()],nullHandler,errorHandler);
 					   });
 
 					// this calls the function that will show what is in the User table in the database
@@ -207,7 +220,10 @@
 		            //  $.mobile.changePage($("#page1")); //redirect to page one
 				   }
 			
-              
+			//clear all form elements to avoid having text in form fields when we click on create new again
+              $('#txTitle').val('');
+              $('#txBody').val('');
+              $('#postIdInputEdit').val('');
 			 return false;
           
 			}
@@ -223,12 +239,12 @@
     <body  onload="onBodyLoad()">
      
             
-          <div data-role="page" id="page1" >
+          <div data-role="page" id="page1"   data-theme="b" >
           	
             <header data-role="header"  data-position="fixed" data-add-back-btn="true"  data-theme="e" style="overflow: hidden; ">
             	  <h1>Write Pad</h1>
             	  
-            	  <a href="#page2" class="ui-btn ui-shadow ui-corner-all ui-icon-plus  ui-btn-icon-notext ui-btn-e ui-btn-right" data-ajax="false"> 
+            	  <a href="#page2" class="ui-btn ui-shadow ui-corner-all ui-icon-plus  ui-btn-icon-notext ui-btn-e ui-btn-right" > 
             	  New
             	  </a>
             	 
@@ -251,7 +267,7 @@
 					 <div  data-role="navbar">
 					 <ul>
 					 	<li><a href="#page1" data-icon="home" class="ui-btn-active">Home</a></li>
-					 	<li><a href="#page2" data-icon="plus" data-ajax="false">New</a></li>
+					 	<li><a href="#page2" data-icon="plus" data-transision="turn">New</a></li>
 					 </ul>
             	  </div>
 				</div>
@@ -263,19 +279,21 @@
           
           
           <!-- edit/create new page-->
-          <div data-role="page" id="page2">
-                 <header data-role="header"  data-add-back-btn="true"  data-position="fixed"  data-theme="e" style="overflow: hidden; ">
+          <div data-role="page" id="page2" data-theme="b">
+                 <header data-role="header" data-theme="e"  data-add-back-btn="true" data-position="fixed"  style="overflow: hidden; ">
             	  <h1>Write Pad</h1>
             </header>
            <div id="content" >
             	<div id="editCreatePost">
             		
+            		<form>
             	<input id="postIdInputEdit" type="hidden" />
-            	<input id="txTitle" type="text" placeholder="Title">
+            	<input id="txTitle" type="text" placeholder="Title" >
             	
 				<textarea id="txBody" type="text" placeholder="Write Note" rows="90%" style="height: 50%;"> </textarea>
 				
-				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" />
+				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" /> 
+				</form>
 				</div>
 				
 				
@@ -287,7 +305,8 @@
 				<div data-role="footer" data-position="fixed">
 					 <div  data-role="navbar">
 					 <ul>
-					 	<li><a href="#page1" data-icon="home" >Home</a></li>
+					 	<li><a href="#page1" data-icon="home" data-transision="pop">Home</a></li>
+					 	<li><a href="#page1" data-icon="arrow-l" data-rel="back"  data-transision="slide">Back</a></li>
 					
 					 </ul>
             	  </div>
@@ -303,7 +322,7 @@
           
           
           <!-- View -->
-          <div data-role="page" id="page3" data-theme="c">
+          <div data-role="page" id="page3" data-theme="b">
                  <header data-role="header"  data-add-back-btn="true" data-position="fixed"  data-theme="e" style="overflow: hidden; ">
             	  <h1>Write Pad</h1>
             </header>
@@ -318,7 +337,7 @@
 				<div data-role="footer" data-position="fixed">
 					 <div  data-role="navbar">
 					 <ul>
-					 	<li><a href="#page1" data-icon="home" disabled="disabled">Home</a></li>
+					 	<li><a href="#page1" data-icon="home" data-transision="slide">Home</a></li>
 					 	<li><a href="#page2" data-icon="edit" onclick="editPost();" data-transition="slidefade">Edit</a></li>
 					 
 					 </ul>
