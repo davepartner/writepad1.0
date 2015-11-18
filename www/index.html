@@ -22,13 +22,7 @@
 	    <script src="js/jquery.mobile-1.4.5.min.js"></script>
 	
          <script type="text/javascript" charset="utf-8">
- //disable all ajax calls
-  $( document ).on( "mobileinit", function() {
-        $.extend( $.mobile , {
-        ajaxEnabled: false,
-        pushStateEnabled: false
-        });
-    });
+ 
 
 			//global variables
 			var db;
@@ -195,23 +189,27 @@
               	 alert('Sorry, your post needs to have a title');
 			   return;
               }
+            
+           
              //check if its edit or new
              var textId = $('#postIdInputEdit').val();
 				  if (textId != "") {
 				      //update database
-				      
-              
                db.transaction(function(transaction) {
 					   transaction.executeSql('UPDATE Posts SET title = ?, body = ? WHERE id = ?',[$('#txTitle').val(),  $('#txBody').val(), textId]);
 					   });
 					   getPost(textId);
-					  // $.mobile.changePage($("#page3")); //redirect to page one
+					   $.mobile.changePage($("#page3")); //redirect to page one
 				   }else{
-				   	
+				      
 				   	// this is the section that actually inserts the values into the User table
-					 db.transaction(function(transaction) {
-					   transaction.executeSql('INSERT INTO Posts(title, body)VALUES (?,?)',[$('#txTitle').val(), $('#txBody').val()],nullHandler,errorHandler);
-					   });
+					  
+					 	var allTitle = $('#txTitle').val();
+					 	var allBody = $('#txBody').val();
+					    db.transaction(function(transaction) {
+						   transaction.executeSql('INSERT INTO Posts(title, body)VALUES (?,?)',[allTitle, allBody],nullHandler,errorHandler);
+						  
+						   });
 
 					// this calls the function that will show what is in the User table in the database
 					 ListDBValues();
@@ -286,14 +284,13 @@
            <div id="content" >
             	<div id="editCreatePost">
             		
-            		<form>
             	<input id="postIdInputEdit" type="hidden" />
             	<input id="txTitle" type="text" placeholder="Title" >
             	
 				<textarea id="txBody" type="text" placeholder="Write Note" rows="90%" style="height: 50%;"> </textarea>
 				
 				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" /> 
-				</form>
+				
 				</div>
 				
 				
