@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        
+	
+        <title>Write Pad</title>
+       
+	     <link rel="stylesheet" href="css/themes/default/jquery.mobile-1.4.5.min.css">
+	     <link rel="stylesheet" href="css/jquery.mobile.theme-1.3.2.min.css">
+	     
+	     <!-- <link rel="stylesheet" href="css/themes/my_custom_theme.min.css" /> -->
+	<link rel="stylesheet" href="css/themes/jquery.mobile.icons.min.css" />
+	
+         <script src="js/jquery.js"></script>
+	    <script src="js/jquery.mobile-1.4.5.min.js"></script>
+	
+         <script type="text/javascript" charset="utf-8">
+
+			//global variables
+			var db;
+			var shortName = 'WebSqlDB';
+			var version = '1.0';
+			var displayName = 'WebSqlDB';
+			var maxSize = 65535;
+
+			// this is called when an error happens in a transaction
+			function errorHandler(transaction, error) {
+			   alert('Error: ' + error.message + ' code: ' + error.code);
+
+			}
+
+			// this is called when a successful transaction happens
+			function successCallBack() {
+			   //alert("DEBUGGING: success");
+			 ListDBValues();
+
+			}
+
+			function nullHandler(){};
+
+			// called when the application loads
+			function onBodyLoad(){
+
+			// This alert is used to make sure the application is loaded correctly
+			// you can comment this out once you have the application working
+			//alert("DEBUGGING: we are in the onBodyLoad() function");
+
+			 if (!window.openDatabase) {
+			   // not all mobile devices support databases  if it does not, the following alert will display
+			   // indicating the device will not be albe to run this application
+			   alert('Databases are not supported in this browser.');
+			   return;
+			 }
+
+			// this line tries to open the database base locally on the device
+			// if it does not exist, it will create it and return a databaseobject stored in variable db
+			 db = openDatabase(shortName, version, displayName,maxSize);
+
+			// this line will try to create the table User in the database just created/openned
+			 db.transaction(function(tx){
+
+			  // you can uncomment this next line if you want the User table to be empty each time the application runs
+			  // tx.executeSql( 'DROP TABLE User',nullHandler,nullHandler);
+
+			  // this line actually creates the table User if it does not exist and sets up the three columns and their types
+			  // note the UserId column is an auto incrementing column which is useful if you want to pull back distinct rows
+			  // easily from the table.
+			   tx.executeSql( 'CREATE TABLE IF NOT EXISTS posts(id INTEGER NOT NULL PRIMARY KEY, title TEXT NOT NULL, body TEXT NOT NULL)',[],nullHandler,errorHandler);
+			 
+			 },errorHandler,successCallBack);
+ 
+              
+			}
+
+			// list the values in the database to the screen using jquery to update the #lbUsers element
+			function ListDBValues() {
+
+			 if (!window.openDatabase) {
+			  alert('Databases are not supported in this browser.');
+			  return;
+			 }
+
+			// this line clears out any content in the #lbUsers element on the page so that the next few lines will show updated
+			// content and not just keep repeating lines
+			 $('#lbUsers').html('');
+
+			// this next section will select all the content from the User table and then go through it row by row
+			// appending the UserId  FirstName  LastName to the  #lbUsers element on the page
+			 db.transaction(function(transaction) {
+			   transaction.executeSql('SELECT * FROM Posts order by id desc;', [],
+			     function(transaction, result) {
+			      if (result != null && result.rows != null) {
+			        for (var i = 0; i < result.rows.length; i++) {
+			          var row = result.rows.item(i);
+			          $('#lbUsers').append('<li> <a href="#page3" data-transition="flip" onClick="getPost(' + row.id+');" class="ui-btn ui-btn-icon-right ui-icon-carat-r" style="font-weight: normal !important;"> ' + row.id + '. ' + row.title+ '</a></li>');
+			        }
+			      }
+			     },errorHandler);
+			 },errorHandler,nullHandler);
+
+			 return;
+
+			}
+			
+			// list the values in the database to the screen using jquery to update the #lbUsers element
+			function getPost(id) {
+              
+			 if (!window.openDatabase) {
+			  alert('Databases are not supported in this browser.');
+			  return;
+			 }
+
+			// this line clears out any content in the #lbUsers element on the page so that the next few lines will show updated
+			// content and not just keep repeating lines
+
+			// this next section will select all the content from the User table and then go through it row by row
+			// appending the UserId  FirstName  LastName to the  #lbUsers element on the page
+			 db.transaction(function(transaction) {
+			   transaction.executeSql('SELECT * FROM Posts where id = "'+id+'" order by id desc;', [],
+			     function(transaction, result) {
+			      if (result != null && result.rows != null) {
+			        for (var i = 0; i < result.rows.length; i++) {
+			          var row = result.rows.item(i);
+			         document.getElementById("#postHeading").innerHTML = row.title;
+			         document.getElementById("#postContent").innerHTML = row.body;
+			         $("#postIdInput").val(row.id);
+			        }
+			      }
+			     },errorHandler);
+			 },errorHandler,nullHandler);
+
+			 return;
+
+			}
+			
+			function editPost(){
+				var postId = $('#postIdInput').val(); 
+				
+				
+				if (!window.openDatabase) {
+			  alert('Databases are not supported in this browser.');
+			  return;
+			 }
+
+			// this line clears out any content in the #lbUsers element on the page so that the next few lines will show updated
+			// content and not just keep repeating lines
+
+			// this next section will select all the content from the User table and then go through it row by row
+			// appending the UserId  FirstName  LastName to the  #lbUsers element on the page
+			 db.transaction(function(transaction) {
+			   transaction.executeSql('SELECT * FROM Posts where id = "'+postId+'" order by id desc;', [],
+			     function(transaction, result) {
+			      if (result != null && result.rows != null) {
+			        for (var i = 0; i < result.rows.length; i++) {
+			          var row = result.rows.item(i);
+			         
+			         document.getElementById("#postHeading").innerHTML = row.title;
+			         document.getElementById("#postContent").innerHTML = row.body;
+			         $("#postIdInputEdit").val(row.id);
+			         $("#txTitle").val(row.title);
+			         $("#txBody").val(row.body);
+			        }
+			      }
+			     },errorHandler);
+			 },errorHandler,nullHandler);
+
+			 return;
+			}
+
+			// this is the function that puts values into the database using the values from the text boxes on the screen
+			function AddValueToDB() {
+
+			 if (!window.openDatabase) {
+			   alert('Databases are not supported in this browser.');
+			   return;
+			 }
+
+             //check if its edit or new
+             var textId = $('#postIdInputEdit').val();
+				  if (textId != "") {
+				      //update database
+				      
+              
+               db.transaction(function(transaction) {
+					   transaction.executeSql('UPDATE Posts SET title = ?, body = ? WHERE id = ?',[$('#txTitle').val(),  $('#txBody').val(), textId]);
+					   });
+					   getPost(textId);
+					   $.mobile.changePage($("#page3")); //redirect to page one
+				   }else{
+				   	
+				   	// this is the section that actually inserts the values into the User table
+					 db.transaction(function(transaction) {
+					   transaction.executeSql('INSERT INTO Posts(title, body, created, modified)VALUES (?,?,?,?)',[$('#txTitle').val(), $('#txBody').val(), datetime(), datetime()],nullHandler,errorHandler);
+					   });
+
+					// this calls the function that will show what is in the User table in the database
+					 ListDBValues();
+		              
+		              $.mobile.changePage($("#page1")); //redirect to page one
+		            //  $.mobile.changePage($("#page1")); //redirect to page one
+				   }
+			
+              
+			 return false;
+          
+			}
+
+			</script>
+       
+       <style>
+       	  textarea {
+			    height : 500px !important;
+			}​
+       </style>
+    </head>
+    <body  onload="onBodyLoad()">
+     
+            
+          <div data-role="page" id="page1" >
+          	
+            <header data-role="header"  data-position="fixed" data-add-back-btn="true"  data-theme="e" style="overflow: hidden; ">
+            	  <h1>Write Pad</h1>
+            	  
+            	  <a href="#page2" class="ui-btn ui-shadow ui-corner-all ui-icon-plus  ui-btn-icon-notext ui-btn-e ui-btn-right" data-ajax="false"> 
+            	  New
+            	  </a>
+            	 
+            	  
+            </header>
+            <div id="content">
+            
+				
+				<form class="ui-filterable">
+            	    <input id="filterBasic-input" data-type="search" placeholder="search"/>
+                 </form>
+                 
+				<ul data-role="listview" data-filter="true" data-input="#filterBasic-input" id="lbUsers" class="ui-listview">
+				
+				</ul>
+				
+				
+            </div>
+				<div data-role="footer" data-position="fixed">
+					 <div  data-role="navbar">
+					 <ul>
+					 	<li><a href="#page1" data-icon="home" class="ui-btn-active">Home</a></li>
+					 	<li><a href="#page2" data-icon="plus" >New</a></li>
+					 </ul>
+            	  </div>
+				</div>
+            
+          </div>  
+          
+          
+          
+          
+          
+          <!-- edit/create new page-->
+          <div data-role="page" id="page2">
+                 <header data-role="header"  data-add-back-btn="true"  data-position="fixed"  data-theme="e" style="overflow: hidden; ">
+            	  <h1>Write Pad</h1>
+            </header>
+           <div id="content" >
+            	<div id="editCreatePost">
+            		
+            	<input id="postIdInputEdit" type="hidden" />
+            	<input id="txTitle" type="text" placeholder="Title">
+            	
+				<textarea id="txBody" type="text" placeholder="Write Note" rows="90%" style="height: 50%;"> </textarea>
+				
+				<input data-icon="check" type="button" value="Save" onClick="AddValueToDB()" />
+				</div>
+				
+				
+				<br>
+          	 <div  class="ui-nodisc-icon">
+            	  <a href="#page2" class="ui-btn ui-shadow ui-corner-all ui-icon-plus  ui-btn-icon-notext ui-btn-e ui-btn-right" data-ajax="false">New</a>
+            	  </div>
+				</div>
+				<div data-role="footer" data-position="fixed">
+					 <div  data-role="navbar">
+					 <ul>
+					 	<li><a href="#page1" data-icon="home" >Home</a></li>
+					
+					 </ul>
+            	  </div>
+				</div>
+          </div>
+          
+        
+          
+          
+          
+          
+          
+          
+          
+          <!-- View -->
+          <div data-role="page" id="page3" data-theme="c">
+                 <header data-role="header"  data-add-back-btn="true" data-position="fixed"  data-theme="e" style="overflow: hidden; ">
+            	  <h1>Write Pad</h1>
+            </header>
+           <div id="content">
+           
+           <input id="postIdInput" type="hidden" />
+           <h3 class="ui-bar  ui-corner-all" id="#postHeading"> </h3>
+          	       <div class="ui-body ui-corner-all">
+          	          <p id="#postContent" > </p>
+          	        </div>
+				</div>
+				<div data-role="footer" data-position="fixed">
+					 <div  data-role="navbar">
+					 <ul>
+					 	<li><a href="#page1" data-icon="home" disabled="disabled">Home</a></li>
+					 	<li><a href="#page2" data-icon="edit" onclick="editPost();" data-transition="slidefade">Edit</a></li>
+					 
+					 </ul>
+            	  </div>
+				</div>
+          </div>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+        </script>
+    </body>
+</html>
